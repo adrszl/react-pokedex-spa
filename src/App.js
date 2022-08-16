@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { Layout, Button, Alert } from 'antd';
+import { Layout, Button, PageHeader, notification, Card } from 'antd';
 import './App.css';
 import 'antd/dist/antd.css';
+
+const { Meta } = Card;
 
 class App extends Component {
 
@@ -15,7 +17,15 @@ class App extends Component {
       alert: '',
       error: false
     };
+    this.openNotification = this.openNotification.bind(this);
     this.handleRandomPokemon = this.handleRandomPokemon.bind(this);
+  }
+
+  openNotification() {
+    notification.open({
+      message: this.state.error ? "Error" : "Success",
+      description: this.state.alert.toLocaleUpperCase(),
+    });
   }
 
   handleRandomPokemon() {
@@ -27,8 +37,14 @@ class App extends Component {
         this.setState({ 
           randomPokemonName: response.data.name,
           randomPokemonImg: response.data.sprites.front_default,
+          randomPokemonAbilities: response.data.abilities,
           alert: `${response.data.name} appears!`
         })
+        console.log('randomPokemonAbilities: ', this.state.randomPokemonAbilities)
+        {this.state.randomPokemonAbilities.map((ability) => {
+          console.log(ability.ability.name)
+        })}
+        this.openNotification();
       })
       .then(() => {
         this.setState({ loading: false });
@@ -43,21 +59,30 @@ class App extends Component {
 
     return (
       <Layout className="layout">
-        {this.state.alert !== '' ?
+        {/* {this.state.alert !== '' ?
           <Alert message={this.state.alert} type={this.state.error ? 'error' : 'success'}/>
           : null
-        }
-        <Header>header</Header>
-        <h1>React Pokedex App</h1>
+        } */}
+        <Header>
+          <PageHeader style={{color: "white", textAlign: "center"}}>React Pokedex App</PageHeader>
+        </Header>
         <h4>Random Pokemon</h4>
         <Button type="primary" loading={this.state.loading} onClick={this.handleRandomPokemon}>
-          Catch it randomly
+          Random search
         </Button>
         {this.state.randomPokemonName !== '' ? 
-          <React.Fragment>
-            <h5>Name: {this.state.randomPokemonName}</h5>
-            <img src={this.state.randomPokemonImg} />
-          </React.Fragment>
+          <Card
+            hoverable
+            style={{ width: 240 }}
+            cover={<img alt="pokemon graphic" src={this.state.randomPokemonImg} />}>
+            <Meta title={this.state.randomPokemonName} />
+            <h5>Abilities:</h5>
+            <ul>
+                {this.state.randomPokemonAbilities.map((ability) => {
+                  return <li>{ability.ability.name}</li>;
+                })}
+            </ul>
+          </Card>
           : null }
       </Layout>
     );
